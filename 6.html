@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client-side Caching (Stale-While-Revalidate)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
+      <h2 class="text-3xl font-bold text-gray-800 mb-6">💾 Client-side Caching (Stale-While-Revalidate)</h2>
+      <p class="text-gray-600 text-lg mb-4">Show old cached data first, then silently update in background.</p>
+      <div class="flex items-center justify-center mb-6 space-x-6">
+        <div class="flex flex-col items-center">
+          <span class="text-5xl mb-2">📦</span>
+          <p class="text-gray-700 font-semibold">Cached Data (Instant)</p>
+        </div>
+        <span class="text-4xl text-gray-400">→</span>
+        <div class="flex flex-col items-center">
+          <span class="text-5xl mb-2">🔄</span>
+          <p class="text-gray-700 font-semibold">Background Update</p>
+        </div>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-lg text-left font-mono text-sm text-gray-700 overflow-x-auto">
+        <pre>const { data: products } = await useAsyncData('products', fetchProducts, {
+  initialCache: true
+});</pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

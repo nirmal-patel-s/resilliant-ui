@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UX Best Practices for Resilient Interfaces</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl text-center">
+      <h2 class="text-3xl font-bold text-gray-800 mb-6">🧠 UX Best Practices for Resilient Interfaces</h2>
+      <ul class="list-none space-y-4 text-left text-gray-700 text-lg">
+        <li class="flex items-start">
+          <span class="text-green-500 text-2xl mr-3">✔</span>
+          <span>Always show user feedback (e.g., error messages, retries, offline mode).</span>
+        </li>
+        <li class="flex items-start">
+          <span class="text-green-500 text-2xl mr-3">✔</span>
+          <span>Do not block entire UI for a single API failure.</span>
+        </li>
+        <li class="flex items-start">
+          <span class="text-green-500 text-2xl mr-3">✔</span>
+          <span>Use optimistic UI where feasible (e.g., form submissions).</span>
+        </li>
+        <li class="flex items-start">
+          <span class="text-green-500 text-2xl mr-3">✔</span>
+          <span>Split screens into resilience zones (critical vs optional data).</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
