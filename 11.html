@@ -1,785 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resilience Zones Demo - Resilient UI</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-        }
-
-        /* Layout Structure */
-        .app-container {
-            min-height: 100vh;
-            display: grid;
-            grid-template-areas: 
-                "header header header"
-                "sidebar main recommendations"
-                "sidebar main recommendations"
-                "footer footer footer";
-            grid-template-columns: 250px 1fr 300px;
-            grid-template-rows: 60px 1fr auto 60px;
-            gap: 1px;
-            background: #e2e8f0;
-        }
-
-        /* Zone Base Styles */
-        .zone {
-            background: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .zone-header {
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e2e8f0;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .zone-content {
-            padding: 20px;
-            height: calc(100% - 60px);
-            overflow-y: auto;
-        }
-
-        /* Zone Status Indicators */
-        .zone-status {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-left: 10px;
-        }
-
-        .status-healthy { background: #48bb78; }
-        .status-loading { background: #ed8936; animation: pulse 2s infinite; }
-        .status-error { background: #e53e3e; }
-        .status-degraded { background: #ecc94b; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Critical Zones */
-        .zone.critical {
-            border-left: 4px solid #e53e3e;
-        }
-
-        .zone.critical .zone-header {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-
-        /* Enhanced Zones */
-        .zone.enhanced {
-            border-left: 4px solid #4299e1;
-        }
-
-        .zone.enhanced .zone-header {
-            background: #bee3f8;
-            color: #2a4365;
-        }
-
-        /* Decorative Zones */
-        .zone.decorative {
-            border-left: 4px solid #9f7aea;
-        }
-
-        .zone.decorative .zone-header {
-            background: #e9d8fd;
-            color: #553c9a;
-        }
-
-        /* Header Zone */
-        .header-zone {
-            grid-area: header;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            background: #2d3748;
-            color: white;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #4299e1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Sidebar Zone */
-        .sidebar-zone {
-            grid-area: sidebar;
-        }
-
-        .nav-item {
-            padding: 12px 20px;
-            border-bottom: 1px solid #e2e8f0;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .nav-item:hover {
-            background: #f7fafc;
-        }
-
-        .nav-item.active {
-            background: #4299e1;
-            color: white;
-        }
-
-        /* Main Content Zone */
-        .main-zone {
-            grid-area: main;
-        }
-
-        .article {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #4299e1;
-        }
-
-        .article-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #2d3748;
-        }
-
-        .article-meta {
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 15px;
-        }
-
-        .article-content {
-            line-height: 1.6;
-            color: #4a5568;
-        }
-
-        /* Recommendations Zone */
-        .recommendations-zone {
-            grid-area: recommendations;
-        }
-
-        .recommendation-item {
-            padding: 15px;
-            border-bottom: 1px solid #e2e8f0;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .recommendation-item:hover {
-            background: #f7fafc;
-        }
-
-        .recommendation-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .recommendation-desc {
-            font-size: 12px;
-            color: #718096;
-        }
-
-        /* Footer Zone */
-        .footer-zone {
-            grid-area: footer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #2d3748;
-            color: white;
-            font-size: 14px;
-        }
-
-        /* Error States */
-        .error-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 200px;
-            color: #718096;
-            text-align: center;
-        }
-
-        .error-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-
-        .error-message {
-            margin-bottom: 15px;
-        }
-
-        .retry-btn {
-            background: #4299e1;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .retry-btn:hover {
-            background: #3182ce;
-        }
-
-        /* Loading States */
-        .loading-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 200px;
-            color: #718096;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e2e8f0;
-            border-top: 4px solid #4299e1;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Skeleton Loading */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .skeleton-article {
-            margin-bottom: 20px;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .skeleton-title {
-            height: 24px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-
-        .skeleton-meta {
-            height: 16px;
-            width: 60%;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-
-        .skeleton-content {
-            height: 16px;
-            margin-bottom: 8px;
-            border-radius: 4px;
-        }
-
-        .skeleton-content:last-child {
-            width: 75%;
-        }
-
-        /* Control Panel */
-        .control-panel {
-            position: fixed;
-            bottom: 0px;
-            right: 20px;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            min-width: 200px;
-            z-index: 1;
-        }
-
-        .control-title {
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #2d3748;
-        }
-
-        .control-group {
-            margin-bottom: 15px;
-        }
-
-        .control-label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #4a5568;
-        }
-
-        .control-buttons {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .control-btn {
-            padding: 6px 12px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-
-        .control-btn:hover {
-            background: #f7fafc;
-        }
-
-        .control-btn.active {
-            background: #4299e1;
-            color: white;
-            border-color: #4299e1;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .app-container {
-                grid-template-areas: 
-                    "header"
-                    "main"
-                    "sidebar"
-                    "recommendations"
-                    "footer";
-                grid-template-columns: 1fr;
-                grid-template-rows: 60px auto auto auto 60px;
-            }
-
-            .control-panel {
-                position: relative;
-                top: auto;
-                right: auto;
-                margin: 20px;
-                width: calc(100% - 40px);
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resilience Zones - Resilient UI/UX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .zone-critical {
+      border: 2px solid #10b981;
+      background: #f0fdf4;
+    }
+    .zone-enhanced {
+      border: 2px solid #3b82f6;
+      background: #f0f9ff;
+    }
+    .zone-decorative {
+      border: 2px solid #8b5cf6;
+      background: #faf5ff;
+    }
+    .zone-failed {
+      border: 2px solid #ef4444;
+      background: #fef2f2;
+    }
+    .failure-simulation {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Control Panel -->
-    <div class="control-panel">
-        <div class="control-title">🎮 Resilience Zone Control Panel</div>
+  <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 p-4">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-6xl w-full">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h2 class="text-4xl font-bold text-gray-800 mb-4">🏗️ Split Screens into Resilience Zones</h2>
+        <p class="text-gray-600 text-lg">Divide your interface into critical and optional sections that can fail independently</p>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         
-        <div class="control-group">
-            <label class="control-label">Header (Critical Zone):</label>
-            <div class="control-buttons">
-                <button class="control-btn active" onclick="setZoneState('header', 'healthy')">Healthy</button>
-                <button class="control-btn" onclick="setZoneState('header', 'loading')">Loading</button>
-                <button class="control-btn" onclick="setZoneState('header', 'error')">Error</button>
+        <!-- Left Column: Concept Explanation -->
+        <div class="space-y-6">
+          <div class="bg-purple-50 rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-purple-800 mb-3">What are Resilience Zones?</h3>
+            <p class="text-purple-700">Resilience zones are UI sections that are isolated from each other's failures. If one zone fails (e.g., recommendations), other zones (e.g., main content) continue working normally.</p>
+          </div>
+
+          <div class="space-y-4">
+            <h4 class="text-lg font-semibold text-gray-800">Zone Categories:</h4>
+            <div class="space-y-3">
+              <div class="flex items-start">
+                <span class="text-green-500 text-xl mr-3">🔒</span>
+                <div>
+                  <strong class="text-green-700">Critical Zones:</strong>
+                  <p class="text-gray-600 text-sm">Core functionality that must work (login, checkout, main content)</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <span class="text-blue-500 text-xl mr-3">⭐</span>
+                <div>
+                  <strong class="text-blue-700">Enhanced Zones:</strong>
+                  <p class="text-gray-600 text-sm">Nice-to-have features (recommendations, social features, ads)</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <span class="text-purple-500 text-xl mr-3">🎨</span>
+                <div>
+                  <strong class="text-purple-700">Decorative Zones:</strong>
+                  <p class="text-gray-600 text-sm">Pure enhancement (animations, non-essential widgets)</p>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div class="bg-amber-50 rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-amber-800 mb-3">Implementation Strategy:</h4>
+            <ul class="space-y-2 text-amber-700">
+              <li class="flex items-center">
+                <span class="text-red-500 mr-2">🛡️</span>
+                <strong>Boundary Components:</strong> Wrap each zone in error boundaries
+              </li>
+              <li class="flex items-center">
+                <span class="text-blue-500 mr-2">📡</span>
+                <strong>Independent Data Sources:</strong> Each zone fetches its own data
+              </li>
+              <li class="flex items-center">
+                <span class="text-yellow-500 mr-2">📉</span>
+                <strong>Graceful Degradation:</strong> Zones can hide or show fallback content
+              </li>
+              <li class="flex items-center">
+                <span class="text-green-500 mr-2">🔄</span>
+                <strong>Progressive Enhancement:</strong> Start with critical zones, add enhanced ones
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div class="control-group">
-            <label class="control-label">Main Content (Critical Zone):</label>
-            <div class="control-buttons">
-                <button class="control-btn active" onclick="setZoneState('main', 'healthy')">Healthy</button>
-                <button class="control-btn" onclick="setZoneState('main', 'loading')">Loading</button>
-                <button class="control-btn" onclick="setZoneState('main', 'error')">Error</button>
+        <!-- Right Column: Visual Layout Example -->
+        <div class="space-y-6">
+          <div class="bg-gray-50 rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-gray-800 mb-4">Example Zone Split:</h4>
+            <div class="bg-white rounded-lg border-2 border-gray-200 p-4">
+              <!-- Header Zone -->
+              <div class="zone-critical rounded-lg p-3 mb-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-green-700">Header (Critical)</span>
+                  <span class="text-xs bg-green-100 px-2 py-1 rounded">✅ Active</span>
+                </div>
+              </div>
+              
+              <!-- Main Content Area -->
+              <div class="flex gap-2 mb-2">
+                <div class="zone-critical rounded-lg p-3 flex-1">
+                  <div class="text-sm font-medium text-green-700 mb-1">Product Details</div>
+                  <div class="text-xs text-green-600">(Critical)</div>
+                  <div class="text-xs bg-green-100 px-2 py-1 rounded inline-block mt-1">✅ Active</div>
+                </div>
+                <div class="zone-enhanced rounded-lg p-3 flex-1" id="recommendationsZone">
+                  <div class="text-sm font-medium text-blue-700 mb-1">Recommendations</div>
+                  <div class="text-xs text-blue-600">(Enhanced)</div>
+                  <div class="text-xs bg-blue-100 px-2 py-1 rounded inline-block mt-1" id="recStatus">✅ Active</div>
+                </div>
+              </div>
+              
+              <!-- Comments Zone -->
+              <div class="zone-enhanced rounded-lg p-3 mb-2" id="commentsZone">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="font-medium text-blue-700">Comments Section (Enhanced)</span>
+                  </div>
+                  <span class="text-xs bg-blue-100 px-2 py-1 rounded" id="commentsStatus">✅ Active</span>
+                </div>
+              </div>
+              
+              <!-- Footer Zone -->
+              <div class="zone-decorative rounded-lg p-3">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-purple-700">Footer (Decorative)</span>
+                  <span class="text-xs bg-purple-100 px-2 py-1 rounded">✅ Active</span>
+                </div>
+              </div>
             </div>
-        </div>
+          </div>
 
-        <div class="control-group">
-            <label class="control-label">Sidebar (Enhanced Zone):</label>
-            <div class="control-buttons">
-                <button class="control-btn active" onclick="setZoneState('sidebar', 'healthy')">Healthy</button>
-                <button class="control-btn" onclick="setZoneState('sidebar', 'loading')">Loading</button>
-                <button class="control-btn" onclick="setZoneState('sidebar', 'error')">Error</button>
-                <button class="control-btn" onclick="setZoneState('sidebar', 'hidden')">Hidden</button>
+          <!-- Failure Simulation Controls -->
+          <div class="bg-red-50 rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-red-800 mb-4">Simulate Zone Failures:</h4>
+            <div class="space-y-3">
+              <button id="failRecommendations" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                Fail Recommendations Zone
+              </button>
+              <button id="failComments" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                Fail Comments Zone
+              </button>
+              <button id="resetAll" class="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                Reset All Zones
+              </button>
             </div>
+          </div>
         </div>
+      </div>
 
-        <div class="control-group">
-            <label class="control-label">Recommendations (Enhanced Zone):</label>
-            <div class="control-buttons">
-                <button class="control-btn active" onclick="setZoneState('recommendations', 'healthy')">Healthy</button>
-                <button class="control-btn" onclick="setZoneState('recommendations', 'loading')">Loading</button>
-                <button class="control-btn" onclick="setZoneState('recommendations', 'error')">Error</button>
-                <button class="control-btn" onclick="setZoneState('recommendations', 'hidden')">Hidden</button>
-            </div>
+      <!-- Benefits Section -->
+      <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-gray-800 mb-4 text-center">Benefits of Resilience Zones</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white rounded-lg p-4 text-center">
+            <div class="text-2xl mb-2">🛡️</div>
+            <h5 class="font-medium text-gray-800 mb-2">Isolation</h5>
+            <p class="text-sm text-gray-600">One zone's failure doesn't affect others</p>
+          </div>
+          <div class="bg-white rounded-lg p-4 text-center">
+            <div class="text-2xl mb-2">⚡</div>
+            <h5 class="font-medium text-gray-800 mb-2">Performance</h5>
+            <p class="text-sm text-gray-600">Critical zones load first, enhanced zones follow</p>
+          </div>
+          <div class="bg-white rounded-lg p-4 text-center">
+            <div class="text-2xl mb-2">🎯</div>
+            <h5 class="font-medium text-gray-800 mb-2">User Experience</h5>
+            <p class="text-sm text-gray-600">Core functionality remains available</p>
+          </div>
         </div>
+      </div>
 
-        <div class="control-group">
-            <label class="control-label">Footer (Decorative Zone):</label>
-            <div class="control-buttons">
-                <button class="control-btn active" onclick="setZoneState('footer', 'healthy')">Healthy</button>
-                <button class="control-btn" onclick="setZoneState('footer', 'hidden')">Hidden</button>
-            </div>
+      <!-- Code Example -->
+      <div class="mt-8 bg-gray-900 rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-white mb-4">Vue.js Implementation Example:</h4>
+        <div class="bg-gray-800 rounded-lg p-4 overflow-x-auto">
+          <pre class="text-sm text-gray-300"><code>&lt;template&gt;
+  &lt;div class="app-layout"&gt;
+    &lt;!-- Critical Zone --&gt;
+    &lt;ErrorBoundary name="header"&gt;
+      &lt;AppHeader /&gt;
+    &lt;/ErrorBoundary&gt;
+    
+    &lt;!-- Main Content (Critical) --&gt;
+    &lt;ErrorBoundary name="main-content"&gt;
+      &lt;ProductDetails :product="product" /&gt;
+    &lt;/ErrorBoundary&gt;
+    
+    &lt;!-- Enhanced Zones --&gt;
+    &lt;ErrorBoundary name="recommendations" fallback-component="RecommendationsFallback"&gt;
+      &lt;RecommendationsPanel /&gt;
+    &lt;/ErrorBoundary&gt;
+    
+    &lt;ErrorBoundary name="comments" fallback-component="CommentsFallback"&gt;
+      &lt;CommentsSection /&gt;
+    &lt;/ErrorBoundary&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre>
         </div>
-
-        <!-- <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #718096;">
-            💡 Try different failure scenarios to see how zones can fail independently!
-        </div> -->
+      </div>
     </div>
+  </div>
 
-    <!-- App Container -->
-    <div class="app-container">
-        <!-- Header Zone (Critical) -->
-        <header class="header-zone zone critical" id="headerZone">
-            <div class="logo">🛡️ Resilient App</div>
-            <div class="user-info">
-                <span>Welcome, John!</span>
-                <div class="user-avatar">JD</div>
-                <div class="zone-status status-healthy" id="headerStatus"></div>
+  <script>
+    // Simulation controls
+    const recommendationsZone = document.getElementById('recommendationsZone');
+    const commentsZone = document.getElementById('commentsZone');
+    const recStatus = document.getElementById('recStatus');
+    const commentsStatus = document.getElementById('commentsStatus');
+    
+    const failRecommendationsBtn = document.getElementById('failRecommendations');
+    const failCommentsBtn = document.getElementById('failComments');
+    const resetAllBtn = document.getElementById('resetAll');
+
+    failRecommendationsBtn.addEventListener('click', () => {
+      recommendationsZone.className = 'zone-failed rounded-lg p-3 flex-1 failure-simulation';
+      recStatus.textContent = '❌ Failed';
+      recStatus.className = 'text-xs bg-red-100 px-2 py-1 rounded';
+      
+      // Show fallback content
+      setTimeout(() => {
+        recommendationsZone.innerHTML = `
+          <div class="text-sm font-medium text-red-700 mb-1">Recommendations</div>
+          <div class="text-xs text-red-600">(Failed - Showing Fallback)</div>
+          <div class="text-xs bg-red-100 px-2 py-1 rounded inline-block mt-1">🔄 Retry Available</div>
+        `;
+        recommendationsZone.className = 'zone-failed rounded-lg p-3 flex-1';
+      }, 2000);
+    });
+
+    failCommentsBtn.addEventListener('click', () => {
+      commentsZone.className = 'zone-failed rounded-lg p-3 mb-2 failure-simulation';
+      commentsStatus.textContent = '❌ Failed';
+      commentsStatus.className = 'text-xs bg-red-100 px-2 py-1 rounded';
+      
+      // Show fallback content
+      setTimeout(() => {
+        commentsZone.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="font-medium text-red-700">Comments Section (Failed)</span>
+              <div class="text-xs text-red-600 mt-1">Unable to load comments. Please try again later.</div>
             </div>
-        </header>
+            <span class="text-xs bg-red-100 px-2 py-1 rounded">🔄 Retry</span>
+          </div>
+        `;
+        commentsZone.className = 'zone-failed rounded-lg p-3 mb-2';
+      }, 2000);
+    });
 
-        <!-- Sidebar Zone (Enhanced) -->
-        <aside class="sidebar-zone zone enhanced" id="sidebarZone">
-            <div class="zone-header">
-                Navigation
-                <div class="zone-status status-healthy" id="sidebarStatus"></div>
-            </div>
-            <div class="zone-content" id="sidebarContent">
-                <div class="nav-item active">📊 Dashboard</div>
-                <div class="nav-item">📝 Articles</div>
-                <div class="nav-item">👥 Users</div>
-                <div class="nav-item">⚙️ Settings</div>
-                <div class="nav-item">📈 Analytics</div>
-                <div class="nav-item">💬 Messages</div>
-            </div>
-        </aside>
-
-        <!-- Main Content Zone (Critical) -->
-        <main class="main-zone zone critical" id="mainZone">
-            <div class="zone-header">
-                Main Content
-                <div class="zone-status status-healthy" id="mainStatus"></div>
-            </div>
-            <div class="zone-content" id="mainContent">
-                <article class="article">
-                    <h2 class="article-title">Understanding Resilience Zones in UI Architecture</h2>
-                    <div class="article-meta">Published on March 15, 2024 • 5 min read</div>
-                    <div class="article-content">
-                        Resilience zones are a fundamental concept in building robust user interfaces. By dividing your application into independent zones, you can ensure that a failure in one area doesn't cascade and bring down the entire user experience. This approach is particularly important for complex applications where different features may depend on different backend services.
-                    </div>
-                </article>
-
-                <article class="article">
-                    <h2 class="article-title">Implementing Graceful Degradation Patterns</h2>
-                    <div class="article-meta">Published on March 12, 2024 • 8 min read</div>
-                    <div class="article-content">
-                        When building resilient UIs, it's crucial to plan for failure scenarios. Graceful degradation ensures that even when parts of your system fail, users can still accomplish their primary tasks. This involves strategic hiding of non-essential features and providing meaningful fallback content.
-                    </div>
-                </article>
-
-                <article class="article">
-                    <h2 class="article-title">Optimistic UI Updates: Best Practices</h2>
-                    <div class="article-meta">Published on March 10, 2024 • 6 min read</div>
-                    <div class="article-content">
-                        Optimistic updates can significantly improve the perceived performance of your application. By immediately reflecting user actions in the UI and handling failures gracefully, you create a more responsive and engaging user experience. However, this pattern requires careful error handling and rollback strategies.
-                    </div>
-                </article>
-            </div>
-        </main>
-
-        <!-- Recommendations Zone (Enhanced) -->
-        <aside class="recommendations-zone zone enhanced" id="recommendationsZone">
-            <div class="zone-header">
-                Recommended
-                <div class="zone-status status-healthy" id="recommendationsStatus"></div>
-            </div>
-            <div class="zone-content" id="recommendationsContent">
-                <div class="recommendation-item">
-                    <div class="recommendation-title">Error Boundaries in React</div>
-                    <div class="recommendation-desc">Learn how to implement error boundaries for better resilience</div>
-                </div>
-                <div class="recommendation-item">
-                    <div class="recommendation-title">Circuit Breaker Pattern</div>
-                    <div class="recommendation-desc">Prevent cascading failures with circuit breakers</div>
-                </div>
-                <div class="recommendation-item">
-                    <div class="recommendation-title">Retry Strategies</div>
-                    <div class="recommendation-desc">Implement smart retry logic for failed requests</div>
-                </div>
-                <div class="recommendation-item">
-                    <div class="recommendation-title">Caching Strategies</div>
-                    <div class="recommendation-desc">Use caching to improve resilience and performance</div>
-                </div>
-                <div class="recommendation-item">
-                    <div class="recommendation-title">Monitoring & Alerting</div>
-                    <div class="recommendation-desc">Set up proper monitoring for your resilient systems</div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Footer Zone (Decorative) -->
-        <footer class="footer-zone zone decorative" id="footerZone">
-            <span>© 2024 Resilient App • Built with ❤️ for better UX</span>
-        </footer>
-    </div>
-
-    <script>
-        // Zone state management
-        const zoneStates = {
-            header: 'healthy',
-            main: 'healthy',
-            sidebar: 'healthy',
-            recommendations: 'healthy',
-            footer: 'healthy'
-        };
-
-        // Content for different states
-        const zoneContent = {
-            sidebar: {
-                healthy: `
-                    <div class="nav-item active">📊 Dashboard</div>
-                    <div class="nav-item">📝 Articles</div>
-                    <div class="nav-item">👥 Users</div>
-                    <div class="nav-item">⚙️ Settings</div>
-                    <div class="nav-item">📈 Analytics</div>
-                    <div class="nav-item">💬 Messages</div>
-                `,
-                loading: `
-                    <div class="loading-state">
-                        <div class="spinner"></div>
-                        <div>Loading navigation...</div>
-                    </div>
-                `,
-                error: `
-                    <div class="error-state">
-                        <div class="error-icon">🚫</div>
-                        <div class="error-message">Navigation temporarily unavailable</div>
-                        <button class="retry-btn" onclick="retryZone('sidebar')">Retry</button>
-                    </div>
-                `
-            },
-            main: {
-                healthy: `
-                    <article class="article">
-                        <h2 class="article-title">Understanding Resilience Zones in UI Architecture</h2>
-                        <div class="article-meta">Published on March 15, 2024 • 5 min read</div>
-                        <div class="article-content">
-                            Resilience zones are a fundamental concept in building robust user interfaces. By dividing your application into independent zones, you can ensure that a failure in one area doesn't cascade and bring down the entire user experience.
-                        </div>
-                    </article>
-                    <article class="article">
-                        <h2 class="article-title">Implementing Graceful Degradation Patterns</h2>
-                        <div class="article-meta">Published on March 12, 2024 • 8 min read</div>
-                        <div class="article-content">
-                            When building resilient UIs, it's crucial to plan for failure scenarios. Graceful degradation ensures that even when parts of your system fail, users can still accomplish their primary tasks.
-                        </div>
-                    </article>
-                `,
-                loading: `
-                    <div class="skeleton-article skeleton">
-                        <div class="skeleton-title skeleton"></div>
-                        <div class="skeleton-meta skeleton"></div>
-                        <div class="skeleton-content skeleton"></div>
-                        <div class="skeleton-content skeleton"></div>
-                        <div class="skeleton-content skeleton"></div>
-                    </div>
-                    <div class="skeleton-article skeleton">
-                        <div class="skeleton-title skeleton"></div>
-                        <div class="skeleton-meta skeleton"></div>
-                        <div class="skeleton-content skeleton"></div>
-                        <div class="skeleton-content skeleton"></div>
-                    </div>
-                `,
-                error: `
-                    <div class="error-state">
-                        <div class="error-icon">⚠️</div>
-                        <div class="error-message">Unable to load articles</div>
-                        <div style="margin-bottom: 15px; font-size: 14px;">Content service is currently unavailable</div>
-                        <button class="retry-btn" onclick="retryZone('main')">Retry Loading</button>
-                    </div>
-                `
-            },
-            recommendations: {
-                healthy: `
-                    <div class="recommendation-item">
-                        <div class="recommendation-title">Error Boundaries in React</div>
-                        <div class="recommendation-desc">Learn how to implement error boundaries for better resilience</div>
-                    </div>
-                    <div class="recommendation-item">
-                        <div class="recommendation-title">Circuit Breaker Pattern</div>
-                        <div class="recommendation-desc">Prevent cascading failures with circuit breakers</div>
-                    </div>
-                    <div class="recommendation-item">
-                        <div class="recommendation-title">Retry Strategies</div>
-                        <div class="recommendation-desc">Implement smart retry logic for failed requests</div>
-                    </div>
-                `,
-                loading: `
-                    <div class="loading-state">
-                        <div class="spinner"></div>
-                        <div>Loading recommendations...</div>
-                    </div>
-                `,
-                error: `
-                    <div class="error-state">
-                        <div class="error-icon">📊</div>
-                        <div class="error-message">Recommendations unavailable</div>
-                        <button class="retry-btn" onclick="retryZone('recommendations')">Retry</button>
-                    </div>
-                `
-            }
-        };
-
-        function setZoneState(zoneName, state) {
-            zoneStates[zoneName] = state;
-            updateZoneUI(zoneName, state);
-            updateControlPanel(zoneName, state);
-        }
-
-        function updateZoneUI(zoneName, state) {
-            const zone = document.getElementById(`${zoneName}Zone`);
-            const statusElement = document.getElementById(`${zoneName}Status`);
-            const contentElement = document.getElementById(`${zoneName}Content`);
-
-            // Update status indicator
-            statusElement.className = `zone-status status-${state}`;
-
-            // Handle zone visibility
-            if (state === 'hidden') {
-                zone.style.display = 'none';
-                return;
-            } else {
-                zone.style.display = '';
-            }
-
-            // Handle header zone special case
-            if (zoneName === 'header') {
-                if (state === 'error') {
-                    zone.style.background = '#fed7d7';
-                    zone.style.color = '#742a2a';
-                } else if (state === 'loading') {
-                    zone.style.background = '#faf5ff';
-                    zone.style.color = '#553c9a';
-                } else {
-                    zone.style.background = '#2d3748';
-                    zone.style.color = 'white';
-                }
-                return;
-            }
-
-            // Handle footer zone special case
-            if (zoneName === 'footer') {
-                return; // Footer only has healthy/hidden states
-            }
-
-            // Update content for sidebar, main, and recommendations
-            if (contentElement && zoneContent[zoneName] && zoneContent[zoneName][state]) {
-                contentElement.innerHTML = zoneContent[zoneName][state];
-            }
-        }
-
-        function updateControlPanel(zoneName, state) {
-            // Update active button in control panel
-            const controlGroup = document.querySelector(`[onclick*="${zoneName}"]`).closest('.control-group');
-            const buttons = controlGroup.querySelectorAll('.control-btn');
-            
-            buttons.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent.toLowerCase() === state) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-
-        function retryZone(zoneName) {
-            // Show loading state first
-            setZoneState(zoneName, 'loading');
-            
-            // Simulate retry delay
-            setTimeout(() => {
-                // 70% chance of success on retry
-                if (Math.random() < 0.7) {
-                    setZoneState(zoneName, 'healthy');
-                } else {
-                    setZoneState(zoneName, 'error');
-                }
-            }, 1500);
-        }
-
-        // Simulate random failures (demo purposes)
-        function simulateRandomFailures() {
-            const zones = ['sidebar', 'recommendations'];
-            const states = ['healthy', 'loading', 'error'];
-            
-            setInterval(() => {
-                if (Math.random() < 0.1) { // 10% chance every 5 seconds
-                    const randomZone = zones[Math.floor(Math.random() * zones.length)];
-                    const randomState = states[Math.floor(Math.random() * states.length)];
-                    
-                    if (zoneStates[randomZone] === 'healthy') {
-                        setZoneState(randomZone, randomState);
-                        
-                        // Auto-recover after some time
-                        if (randomState === 'error') {
-                            setTimeout(() => {
-                                if (zoneStates[randomZone] === 'error') {
-                                    setZoneState(randomZone, 'healthy');
-                                }
-                            }, 3000);
-                        } else if (randomState === 'loading') {
-                            setTimeout(() => {
-                                if (zoneStates[randomZone] === 'loading') {
-                                    setZoneState(randomZone, Math.random() < 0.8 ? 'healthy' : 'error');
-                                }
-                            }, 2000);
-                        }
-                    }
-                }
-            }, 5000);
-        }
-
-        // Initialize the demo
-        document.addEventListener('DOMContentLoaded', function() {
-            // Start random failure simulation (uncomment to enable)
-            // simulateRandomFailures();
-            
-            console.log('🛡️ Resilience Zones Demo loaded!');
-            console.log('Use the control panel to simulate different failure scenarios.');
-        });
-    </script>
+    resetAllBtn.addEventListener('click', () => {
+      // Reset recommendations
+      recommendationsZone.className = 'zone-enhanced rounded-lg p-3 flex-1';
+      recommendationsZone.innerHTML = `
+        <div class="text-sm font-medium text-blue-700 mb-1">Recommendations</div>
+        <div class="text-xs text-blue-600">(Enhanced)</div>
+        <div class="text-xs bg-blue-100 px-2 py-1 rounded inline-block mt-1">✅ Active</div>
+      `;
+      
+      // Reset comments
+      commentsZone.className = 'zone-enhanced rounded-lg p-3 mb-2';
+      commentsZone.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="font-medium text-blue-700">Comments Section (Enhanced)</span>
+          </div>
+          <span class="text-xs bg-blue-100 px-2 py-1 rounded">✅ Active</span>
+        </div>
+      `;
+    });
+  </script>
 </body>
 </html>

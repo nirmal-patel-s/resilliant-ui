@@ -3,42 +3,230 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>How to Apply in Vue/Nuxt Projects</title>
+  <title>Optimistic UI - Resilient UI/UX</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
     }
+    .demo-button {
+      transition: all 0.2s ease;
+    }
+    .demo-button:hover {
+      transform: translateY(-1px);
+    }
+    .loading-spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #3498db;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
-  <div class="flex items-center justify-center min-h-screen bg-indigo-100 p-4">
-    <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl text-center">
-      <h2 class="text-3xl font-bold text-gray-800 mb-6">🔁 How to Apply in Vue/Nuxt Projects</h2>
-      <ul class="list-none space-y-4 text-left text-gray-700 text-lg">
-        <li class="flex items-start">
-          <span class="text-blue-500 text-2xl mr-3">📦</span>
-          <span>Use <code class="font-mono bg-gray-100 px-2 py-1 rounded">useAsyncData()</code> with error handlers and retry wrappers.</span>
-        </li>
-        <li class="flex items-start">
-          <span class="text-blue-500 text-2xl mr-3">🧩</span>
-          <span>Use composables like <code class="font-mono bg-gray-100 px-2 py-1 rounded">useResilientFetch()</code> or <code class="font-mono bg-gray-100 px-2 py-1 rounded">useSafeApi()</code>.</span>
-        </li>
-        <li class="flex items-start">
-          <span class="text-blue-500 text-2xl mr-3">🚧</span>
-          <span>Add fallback-slot components (e.g., <code class="font-mono bg-gray-100 px-2 py-1 rounded">&lt;Fallback :error="error"&gt;</code>).</span>
-        </li>
-        <li class="flex items-start">
-          <span class="text-blue-500 text-2xl mr-3">📊</span>
-          <span>Introduce a loading/error state architecture in your stores.</span>
-        </li>
-        <li class="flex items-start">
-          <span class="text-blue-500 text-2xl mr-3">🔍</span>
-          <span>Use tools like Sentry, LogRocket for resilience observability.</span>
-        </li>
-      </ul>
+  <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h2 class="text-4xl font-bold text-gray-800 mb-4">⚡ Use Optimistic UI</h2>
+        <p class="text-gray-600 text-lg">Show immediate feedback for user actions before server confirmation</p>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Left Column: Concept Explanation -->
+        <div class="space-y-6">
+          <div class="bg-blue-50 rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-blue-800 mb-3">What is Optimistic UI?</h3>
+            <p class="text-blue-700">Optimistic UI assumes user actions will succeed and immediately updates the interface, then handles failures gracefully if they occur. This creates a perception of speed and responsiveness.</p>
+          </div>
+
+          <div class="space-y-4">
+            <h4 class="text-lg font-semibold text-gray-800">Key Principles:</h4>
+            <div class="space-y-3">
+              <div class="flex items-start">
+                <span class="text-green-500 text-xl mr-3">⚡</span>
+                <div>
+                  <strong class="text-gray-800">Immediate Response:</strong>
+                  <p class="text-gray-600 text-sm">Update UI instantly when user performs an action</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <span class="text-red-500 text-xl mr-3">↩️</span>
+                <div>
+                  <strong class="text-gray-800">Rollback on Failure:</strong>
+                  <p class="text-gray-600 text-sm">Revert changes if the server request fails</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <span class="text-blue-500 text-xl mr-3">🔄</span>
+                <div>
+                  <strong class="text-gray-800">Loading States:</strong>
+                  <p class="text-gray-600 text-sm">Show subtle indicators that background processing is happening</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <span class="text-orange-500 text-xl mr-3">🚨</span>
+                <div>
+                  <strong class="text-gray-800">Error Handling:</strong>
+                  <p class="text-gray-600 text-sm">Provide clear recovery options when optimistic updates fail</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Use Cases & Demo -->
+        <div class="space-y-6">
+          <div class="bg-green-50 rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-green-800 mb-3">Best Use Cases:</h4>
+            <ul class="space-y-2 text-green-700">
+              <li class="flex items-center">
+                <span class="text-pink-500 mr-2">❤️</span>
+                Social media likes/reactions
+              </li>
+              <li class="flex items-center">
+                <span class="text-yellow-500 mr-2">🛒</span>
+                Adding items to cart
+              </li>
+              <li class="flex items-center">
+                <span class="text-blue-500 mr-2">💬</span>
+                Posting comments
+              </li>
+              <li class="flex items-center">
+                <span class="text-purple-500 mr-2">⚙️</span>
+                Toggling settings
+              </li>
+              <li class="flex items-center">
+                <span class="text-indigo-500 mr-2">📁</span>
+                File uploads with progress
+              </li>
+            </ul>
+          </div>
+
+          <!-- Interactive Demo -->
+          <div class="bg-gray-50 rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-gray-800 mb-4">Live Demo: Like Button</h4>
+            <div class="bg-white rounded-lg p-4 border">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
+                  <div>
+                    <p class="font-medium text-gray-800">Sample Post</p>
+                    <p class="text-sm text-gray-500">Great content about resilient UI!</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 flex items-center space-x-4">
+                <button id="likeBtn" class="demo-button flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all">
+                  <span id="likeIcon">🤍</span>
+                  <span id="likeText">Like</span>
+                  <span id="likeCount" class="text-sm text-gray-500">(42)</span>
+                  <span id="loadingSpinner" class="loading-spinner hidden"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example Flow -->
+      <div class="mt-8 bg-yellow-50 rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-yellow-800 mb-4">Example Flow:</h4>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
+          <div class="bg-white rounded-lg p-3 border-2 border-yellow-200">
+            <div class="text-2xl mb-2">👆</div>
+            <p class="text-sm font-medium">1. User clicks "Like"</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 border-2 border-yellow-200">
+            <div class="text-2xl mb-2">⚡</div>
+            <p class="text-sm font-medium">2. UI shows liked state instantly</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 border-2 border-yellow-200">
+            <div class="text-2xl mb-2">🔄</div>
+            <p class="text-sm font-medium">3. API call in background</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 border-2 border-green-200">
+            <div class="text-2xl mb-2">✅</div>
+            <p class="text-sm font-medium">4a. Success: Keep state</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 border-2 border-red-200">
+            <div class="text-2xl mb-2">❌</div>
+            <p class="text-sm font-medium">4b. Failure: Revert + show error</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <script>
+    // Interactive demo for like button
+    let isLiked = false;
+    let likeCount = 42;
+    let isLoading = false;
+
+    const likeBtn = document.getElementById('likeBtn');
+    const likeIcon = document.getElementById('likeIcon');
+    const likeText = document.getElementById('likeText');
+    const likeCountSpan = document.getElementById('likeCount');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    likeBtn.addEventListener('click', async () => {
+      if (isLoading) return;
+
+      // Optimistic update
+      isLiked = !isLiked;
+      likeCount += isLiked ? 1 : -1;
+      updateUI();
+
+      // Show loading state
+      isLoading = true;
+      loadingSpinner.classList.remove('hidden');
+
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Simulate random failure (20% chance)
+        if (Math.random() < 0.2) {
+          throw new Error('Network error');
+        }
+
+        // Success - keep optimistic state
+        isLoading = false;
+        loadingSpinner.classList.add('hidden');
+        
+      } catch (error) {
+        // Failure - rollback optimistic update
+        isLiked = !isLiked;
+        likeCount += isLiked ? 1 : -1;
+        isLoading = false;
+        loadingSpinner.classList.add('hidden');
+        updateUI();
+        
+        // Show error message
+        alert('Failed to update like. Please try again.');
+      }
+    });
+
+    function updateUI() {
+      likeIcon.textContent = isLiked ? '❤️' : '🤍';
+      likeText.textContent = isLiked ? 'Liked' : 'Like';
+      likeCountSpan.textContent = `(${likeCount})`;
+      likeBtn.className = `demo-button flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${
+        isLiked ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-gray-300 text-gray-700'
+      }`;
+    }
+  </script>
 </body>
 </html>
