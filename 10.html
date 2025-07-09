@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimistic UI Demo - Resilient UI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+        }
+
+        .demo-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        /* Social Media Like Demo */
+        .post {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .post-content {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .like-btn, .comment-btn {
+            background: none;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .like-btn {
+            color: #718096;
+        }
+
+        .like-btn.liked {
+            color: #e53e3e;
+            background: #fed7d7;
+        }
+
+        .like-btn.processing {
+            opacity: 0.7;
+            transform: scale(0.95);
+        }
+
+        .like-btn.error {
+            color: #e53e3e;
+            background: #fed7d7;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Comment Form Demo */
+        .comment-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .comment-submit {
+            padding: 10px 20px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .comment-submit:hover {
+            background: #3182ce;
+        }
+
+        .comment-submit:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .comments-list {
+            margin-top: 20px;
+        }
+
+        .comment {
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .comment.optimistic {
+            opacity: 0.7;
+            border: 1px dashed #cbd5e0;
+        }
+
+        .comment.error {
+            background: #fed7d7;
+            border: 1px solid #e53e3e;
+        }
+
+        .comment-meta {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .retry-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        /* Shopping Cart Demo */
+        .product {
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .product-image {
+            width: 80px;
+            height: 80px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            color: #4299e1;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .add-to-cart {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-self: center;
+        }
+
+        .add-to-cart:hover {
+            background: #38a169;
+        }
+
+        .add-to-cart.adding {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .cart-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #e53e3e;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        .status-info {
+            background: #bee3f8;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Optimistic UI Patterns Demo</h1>
+        
+        <!-- Social Media Like Demo -->
+        <div class="demo-section">
+            <div class="demo-title">1. Social Media Like Button</div>
+            <div class="post">
+                <div class="post-content">
+                    Just discovered this amazing technique for building resilient UIs! 
+                    Optimistic updates make interactions feel so much faster and more responsive.
+                </div>
+                <div class="post-actions">
+                    <button class="like-btn" id="likeBtn">
+                        <span class="like-icon">❤️</span>
+                        <span class="like-count">42</span>
+                        <span class="like-text">likes</span>
+                    </button>
+                    <button class="comment-btn">
+                        💬 Comment
+                    </button>
+                </div>
+                <div id="likeStatus"></div>
+            </div>
+        </div>
+
+        <!-- Comment System Demo -->
+        <div class="demo-section">
+            <div class="demo-title">2. Optimistic Comment Posting</div>
+            <div class="post">
+                <div class="comment-form">
+                    <input type="text" class="comment-input" id="commentInput" 
+                           placeholder="Add a comment..." maxlength="200">
+                    <button class="comment-submit" id="commentSubmit">Post</button>
+                </div>
+                <div class="comments-list" id="commentsList">
+                    <div class="comment">
+                        <div class="comment-meta">Sarah Johnson • 2 minutes ago</div>
+                        <div>This is really helpful! Thanks for sharing.</div>
+                    </div>
+                    <div class="comment">
+                        <div class="comment-meta">Mike Chen • 5 minutes ago</div>
+                        <div>Great explanation of resilient UI patterns!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shopping Cart Demo -->
+        <div class="demo-section">
+            <div class="demo-title">3. Optimistic Shopping Cart</div>
+            <div class="product">
+                <div class="product-image">📱</div>
+                <div class="product-info">
+                    <div class="product-name">Smartphone Pro</div>
+                    <div class="product-price">$899</div>
+                </div>
+                <button class="add-to-cart" id="addPhone">Add to Cart</button>
+            </div>
+            <div class="product">
+                <div class="product-image">💻</div>
+                <div class="product-info">
+                    <div class="product-name">Laptop Ultra</div>
+                    <div class="product-price">$1299</div>
+                </div>
+                <button class="add-to-cart" id="addLaptop">Add to Cart</button>
+            </div>
+            <div id="cartStatus"></div>
+        </div>
+
+        <div class="cart-counter" id="cartCounter">0</div>
+    </div>
+
+    <script>
+        // Global state
+        let likeCount = 42;
+        let isLiked = false;
+        let cartCount = 0;
+        let commentId = 3;
+
+        // Utility function to simulate API calls
+        function simulateApiCall(shouldFail = false, delay = 1000) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    if (shouldFail) {
+                        reject(new Error('Network error'));
+                    } else {
+                        resolve({ success: true });
+                    }
+                }, delay);
+            });
+        }
+
+        function showStatus(elementId, message, type, duration = 3000) {
+            const statusEl = document.getElementById(elementId);
+            statusEl.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+            setTimeout(() => {
+                statusEl.innerHTML = '';
+            }, duration);
+        }
+
+        // Like Button Implementation
+        document.getElementById('likeBtn').addEventListener('click', async function() {
+            const btn = this;
+            const likeCountEl = btn.querySelector('.like-count');
+            const likeTextEl = btn.querySelector('.like-text');
+            
+            // Prevent multiple clicks
+            if (btn.classList.contains('processing')) return;
+            
+            // Optimistic update
+            const wasLiked = isLiked;
+            const originalCount = likeCount;
+            
+            isLiked = !isLiked;
+            likeCount += isLiked ? 1 : -1;
+            
+            // Update UI immediately
+            btn.classList.toggle('liked', isLiked);
+            btn.classList.add('processing');
+            likeCountEl.textContent = likeCount;
+            likeTextEl.textContent = likeCount === 1 ? 'like' : 'likes';
+            
+            try {
+                // Simulate API call (20% chance of failure)
+                await simulateApiCall(Math.random() < 0.2, 800);
+                
+                // Success
+                btn.classList.remove('processing');
+                showStatus('likeStatus', '👍 Like updated successfully!', 'success');
+                
+            } catch (error) {
+                // Rollback optimistic update
+                isLiked = wasLiked;
+                likeCount = originalCount;
+                
+                btn.classList.toggle('liked', isLiked);
+                btn.classList.remove('processing');
+                btn.classList.add('error');
+                
+                likeCountEl.textContent = likeCount;
+                likeTextEl.textContent = likeCount === 1 ? 'like' : 'likes';
+                
+                showStatus('likeStatus', '❌ Failed to update like. Please try again.', 'error');
+                
+                // Remove error state
+                setTimeout(() => {
+                    btn.classList.remove('error');
+                }, 2000);
+            }
+        });
+
+        // Comment System Implementation
+        document.getElementById('commentSubmit').addEventListener('click', async function() {
+            const input = document.getElementById('commentInput');
+            const btn = this;
+            const commentsList = document.getElementById('commentsList');
+            
+            const commentText = input.value.trim();
+            if (!commentText) return;
+            
+            // Disable form during submission
+            btn.disabled = true;
+            input.disabled = true;
+            
+            // Create optimistic comment
+            const optimisticComment = document.createElement('div');
+            optimisticComment.className = 'comment optimistic';
+            optimisticComment.id = `comment-${commentId}`;
+            optimisticComment.innerHTML = `
+                <div class="comment-meta">You • Just now (posting...)</div>
+                <div>${commentText}</div>
+            `;
+            
+            // Add to top of comments
+            commentsList.insertBefore(optimisticComment, commentsList.firstChild);
+            
+            // Clear input
+            input.value = '';
+            
+            try {
+                // Simulate API call (30% chance of failure)
+                await simulateApiCall(Math.random() < 0.3, 1200);
+                
+                // Success - update optimistic comment
+                optimisticComment.classList.remove('optimistic');
+                optimisticComment.querySelector('.comment-meta').textContent = 'You • Just now';
+                
+                showStatus('cartStatus', '✅ Comment posted successfully!', 'success');
+                
+            } catch (error) {
+                // Error - mark comment as failed
+                optimisticComment.classList.add('error');
+                optimisticComment.innerHTML += `
+                    <div style="margin-top: 8px; font-size: 12px; color: #e53e3e;">
+                        ❌ Failed to post comment
+                        <button class="retry-btn" onclick="retryComment('${optimisticComment.id}', '${commentText}')">
+                            Retry
+                        </button>
+                        <button class="retry-btn" onclick="removeComment('${optimisticComment.id}')" 
+                                style="background: #718096;">
+                            Remove
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // Re-enable form
+            btn.disabled = false;
+            input.disabled = false;
+            input.focus();
+            commentId++;
+        });
+
+        // Comment retry functions
+        window.retryComment = async function(commentId, text) {
+            const comment = document.getElementById(commentId);
+            const retrySection = comment.querySelector('div:last-child');
+            retrySection.innerHTML = 'Retrying...';
+            
+            try {
+                await simulateApiCall(false, 800);
+                comment.classList.remove('error');
+                comment.classList.remove('optimistic');
+                comment.innerHTML = `
+                    <div class="comment-meta">You • Just now</div>
+                    <div>${text}</div>
+                `;
+                showStatus('cartStatus', '✅ Comment posted successfully!', 'success');
+            } catch (error) {
+                retrySection.innerHTML = `
+                    ❌ Retry failed
+                    <button class="retry-btn" onclick="retryComment('${commentId}', '${text}')">Try Again</button>
+                    <button class="retry-btn" onclick="removeComment('${commentId}')" style="background: #718096;">Remove</button>
+                `;
+            }
+        };
+
+        window.removeComment = function(commentId) {
+            const comment = document.getElementById(commentId);
+            comment.remove();
+        };
+
+        // Shopping Cart Implementation
+        function addToCartOptimistic(button, productName) {
+            return async function() {
+                if (button.classList.contains('adding')) return;
+                
+                // Optimistic update
+                const originalText = button.textContent;
+                const originalCount = cartCount;
+                
+                cartCount++;
+                button.textContent = 'Adding...';
+                button.classList.add('adding');
+                
+                // Update cart counter immediately
+                document.getElementById('cartCounter').textContent = cartCount;
+                
+                try {
+                    // Simulate API call (25% chance of failure)
+                    await simulateApiCall(Math.random() < 0.25, 1000);
+                    
+                    // Success
+                    button.textContent = 'Added ✓';
+                    showStatus('cartStatus', `✅ ${productName} added to cart!`, 'success');
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('adding');
+                    }, 2000);
+                    
+                } catch (error) {
+                    // Rollback
+                    cartCount = originalCount;
+                    document.getElementById('cartCounter').textContent = cartCount;
+                    
+                    button.textContent = 'Failed - Retry?';
+                    button.style.background = '#e53e3e';
+                    
+                    showStatus('cartStatus', `❌ Failed to add ${productName}. Please try again.`, 'error');
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '';
+                        button.classList.remove('adding');
+                    }, 3000);
+                }
+            };
+        }
+
+        document.getElementById('addPhone').addEventListener('click', 
+            addToCartOptimistic(document.getElementById('addPhone'), 'Smartphone Pro'));
+        
+        document.getElementById('addLaptop').addEventListener('click', 
+            addToCartOptimistic(document.getElementById('addLaptop'), 'Laptop Ultra'));
+
+        // Allow Enter key for comments
+        document.getElementById('commentInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('commentSubmit').click();
+            }
+        });
+    </script>
+</body>
+</html>
